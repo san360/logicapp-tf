@@ -1,0 +1,27 @@
+# Example Terraform Variables
+# Copy this file to terraform.tfvars and customize the values
+
+# Resource naming and location
+resource_group_name = "rg-logicapp-demo"
+location            = "eastus"
+environment         = "dev"
+project_name        = "logicappdemo"
+
+# Key Vault secrets (customize these for your use case)
+# WARNING: In production, use environment variables or secure input methods
+secret_username = "demouser"
+secret_password = "DemoP@ssw0rd123!"
+
+# Logic App SKU (WS1, WS2, or WS3)
+# WS1: Small workloads
+# WS2: Medium workloads  
+# WS3: Large workloads
+logic_app_sku = "WS1"
+
+# Resource tags
+tags = {
+  Environment = "Demo"
+  Project     = "LogicAppManagedIdentity"
+  ManagedBy   = "Terraform"
+  CostCenter  = "IT"
+}

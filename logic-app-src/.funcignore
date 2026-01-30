@@ -1,0 +1,27 @@
+# Azure Functions / Logic App Standard ignore file
+# Files and folders listed here are excluded from deployment
+
+# Development-only folders
+workflow-designtime/
+.vscode/
+
+# Local settings (contains secrets, not for deployment)
+local.settings.json
+
+# Git
+.git/
+.gitignore
+
+# IDE
+*.code-workspace
+.idea/
+
+# Build artifacts
+*.zip
+node_modules/
+
+# Test files
+test/
+tests/
+*.test.js
+*.spec.js

@@ -1,0 +1,151 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "contentVersion": "1.0.0.0",
+    "triggers": {
+      "manual": {
+        "type": "Request",
+        "kind": "Http",
+        "inputs": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "customParam": {
+                "type": "string",
+                "description": "Optional custom parameter to include in httpbin call"
+              }
+            }
+          },
+          "method": "POST"
+        },
+        "description": "HTTP trigger that starts the workflow"
+      }
+    },
+    "actions": {
+      "Initialize_Username": {
+        "type": "InitializeVariable",
+        "inputs": {
+          "variables": [
+            {
+              "name": "username",
+              "type": "string",
+              "value": "@appsetting('KV_SECRET_USERNAME')"
+            }
+          ]
+        },
+        "runAfter": {},
+        "description": "Get username from Key Vault via app setting reference"
+      },
+      "Initialize_Password": {
+        "type": "InitializeVariable",
+        "inputs": {
+          "variables": [
+            {
+              "name": "password",
+              "type": "string",
+              "value": "@appsetting('KV_SECRET_PASSWORD')"
+            }
+          ]
+        },
+        "runAfter": {
+          "Initialize_Username": ["Succeeded"]
+        },
+        "description": "Get password from Key Vault via app setting reference"
+      },
+      "Call_Httpbin_Get": {
+        "type": "Http",
+        "inputs": {
+          "method": "GET",
+          "uri": "https://httpbin.org/get",
+          "queries": {
+            "username": "@variables('username')",
+            "message": "Hello from Logic App with Managed Identity",
+            "timestamp": "@utcNow()",
+            "customParam": "@coalesce(triggerBody()?['customParam'], 'defaultValue')"
+          },
+          "headers": {
+            "Content-Type": "application/json",
+            "X-Custom-Header": "LogicAppDemo"
+          }
+        },
+        "runAfter": {
+          "Initialize_Password": ["Succeeded"]
+        },
+        "description": "Call httpbin.org GET endpoint with query parameters"
+      },
+      "Parse_Httpbin_Response": {
+        "type": "ParseJson",
+        "inputs": {
+          "content": "@body('Call_Httpbin_Get')",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "args": {
+                "type": "object"
+              },
+              "headers": {
+                "type": "object"
+              },
+              "origin": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "runAfter": {
+          "Call_Httpbin_Get": ["Succeeded"]
+        },
+        "description": "Parse the JSON response from httpbin"
+      },
+      "Success_Response": {
+        "type": "Response",
+        "inputs": {
+          "statusCode": 200,
+          "body": {
+            "status": "success",
+            "message": "Workflow executed successfully",
+            "data": {
+              "httpbinResponse": "@body('Parse_Httpbin_Response')",
+              "usernameUsed": "@variables('username')",
+              "executionTime": "@utcNow()",
+              "workflowRunId": "@workflow()['run']['name']"
+            }
+          },
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        },
+        "runAfter": {
+          "Parse_Httpbin_Response": ["Succeeded"]
+        },
+        "description": "Return success response with httpbin data"
+      },
+      "Error_Response": {
+        "type": "Response",
+        "inputs": {
+          "statusCode": 500,
+          "body": {
+            "status": "error",
+            "message": "Workflow execution failed",
+            "error": "@concat('Error in action: ', coalesce(workflow()['run']['error']?['message'], 'Unknown error'))",
+            "executionTime": "@utcNow()",
+            "workflowRunId": "@workflow()['run']['name']"
+          },
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        },
+        "runAfter": {
+          "Call_Httpbin_Get": ["Failed", "TimedOut"],
+          "Parse_Httpbin_Response": ["Failed", "TimedOut"]
+        },
+        "description": "Return error response if workflow fails"
+      }
+    },
+    "outputs": {}
+  },
+  "kind": "Stateful"
+}
