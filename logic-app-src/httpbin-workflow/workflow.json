@@ -22,35 +22,37 @@
       }
     },
     "actions": {
-      "Initialize_Username": {
-        "type": "InitializeVariable",
+      "Get_Username_Secret": {
+        "type": "ServiceProvider",
         "inputs": {
-          "variables": [
-            {
-              "name": "username",
-              "type": "string",
-              "value": "@appsetting('KV_SECRET_USERNAME')"
-            }
-          ]
+          "parameters": {
+            "secretName": "demo-username"
+          },
+          "serviceProviderConfiguration": {
+            "connectionName": "keyvault",
+            "operationId": "getSecret",
+            "serviceProviderId": "/serviceProviders/keyVault"
+          }
         },
         "runAfter": {},
-        "description": "Get username from Key Vault via app setting reference"
+        "description": "Get username directly from Key Vault using Managed Identity"
       },
-      "Initialize_Password": {
-        "type": "InitializeVariable",
+      "Get_Password_Secret": {
+        "type": "ServiceProvider",
         "inputs": {
-          "variables": [
-            {
-              "name": "password",
-              "type": "string",
-              "value": "@appsetting('KV_SECRET_PASSWORD')"
-            }
-          ]
+          "parameters": {
+            "secretName": "demo-password"
+          },
+          "serviceProviderConfiguration": {
+            "connectionName": "keyvault",
+            "operationId": "getSecret",
+            "serviceProviderId": "/serviceProviders/keyVault"
+          }
         },
         "runAfter": {
-          "Initialize_Username": ["Succeeded"]
+          "Get_Username_Secret": ["Succeeded"]
         },
-        "description": "Get password from Key Vault via app setting reference"
+        "description": "Get password directly from Key Vault using Managed Identity"
       },
       "Call_Httpbin_Get": {
         "type": "Http",
@@ -58,8 +60,8 @@
           "method": "GET",
           "uri": "https://httpbin.org/get",
           "queries": {
-            "username": "@variables('username')",
-            "message": "Hello from Logic App with Managed Identity",
+            "username": "@body('Get_Username_Secret')?['value']",
+            "message": "Hello from Logic App with Managed Identity and Key Vault Built-in Connector",
             "timestamp": "@utcNow()",
             "customParam": "@coalesce(triggerBody()?['customParam'], 'defaultValue')"
           },
@@ -69,7 +71,7 @@
           }
         },
         "runAfter": {
-          "Initialize_Password": ["Succeeded"]
+          "Get_Password_Secret": ["Succeeded"]
         },
         "description": "Call httpbin.org GET endpoint with query parameters"
       },
@@ -106,10 +108,11 @@
           "statusCode": 200,
           "body": {
             "status": "success",
-            "message": "Workflow executed successfully",
+            "message": "Workflow executed successfully using Key Vault Built-in Connector",
             "data": {
               "httpbinResponse": "@body('Parse_Httpbin_Response')",
-              "usernameUsed": "@variables('username')",
+              "usernameUsed": "@body('Get_Username_Secret')?['value']",
+              "secretSource": "Key Vault Built-in Connector with Managed Identity",
               "executionTime": "@utcNow()",
               "workflowRunId": "@workflow()['run']['name']"
             }
@@ -139,6 +142,8 @@
           }
         },
         "runAfter": {
+          "Get_Username_Secret": ["Failed", "TimedOut"],
+          "Get_Password_Secret": ["Failed", "TimedOut"],
           "Call_Httpbin_Get": ["Failed", "TimedOut"],
           "Parse_Httpbin_Response": ["Failed", "TimedOut"]
         },

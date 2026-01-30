@@ -249,8 +249,6 @@ resource "azapi_resource" "logic_app" {
           { name = "AzureWebJobsStorage__queueServiceUri", value = "https://${local.storage_account_name}.queue.core.windows.net" },
           { name = "AzureWebJobsStorage__tableServiceUri", value = "https://${local.storage_account_name}.table.core.windows.net" },
           { name = "AzureWebJobsStorage__credential", value = "managedidentity" },
-          { name = "KV_SECRET_USERNAME", value = "@Microsoft.KeyVault(VaultName=${local.key_vault_name};SecretName=demo-username)" },
-          { name = "KV_SECRET_PASSWORD", value = "@Microsoft.KeyVault(VaultName=${local.key_vault_name};SecretName=demo-password)" },
           { name = "KEY_VAULT_URL", value = azurerm_key_vault.main.vault_uri },
           { name = "APP_KIND", value = "workflowApp" }
         ]
