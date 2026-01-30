@@ -1,16 +1,17 @@
 {
   "managedApiConnections": {},
   "serviceProviderConnections": {
-    "keyvault": {
+    "keyVault-1": {
+      "displayName": "Key Vault Connection",
+      "parameterSetName": "ManagedServiceIdentity",
       "parameterValues": {
-        "vaultUri": "@appsetting('KEY_VAULT_URL')"
+        "VaultUri": "@appsetting('KEY_VAULT_URL')",
+        "authProvider": {
+          "Type": "ManagedServiceIdentity"
+        }
       },
       "serviceProvider": {
         "id": "/serviceProviders/keyVault"
-      },
-      "displayName": "Azure Key Vault",
-      "authentication": {
-        "type": "ManagedServiceIdentity"
       }
     }
   }

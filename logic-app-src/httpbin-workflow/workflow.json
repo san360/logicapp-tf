@@ -29,13 +29,13 @@
             "secretName": "demo-username"
           },
           "serviceProviderConfiguration": {
-            "connectionName": "keyvault",
+            "connectionName": "keyVault-1",
             "operationId": "getSecret",
             "serviceProviderId": "/serviceProviders/keyVault"
           }
         },
         "runAfter": {},
-        "description": "Get username directly from Key Vault using Managed Identity"
+        "description": "Get username from Key Vault using Built-in Connector with Managed Identity"
       },
       "Get_Password_Secret": {
         "type": "ServiceProvider",
@@ -44,7 +44,7 @@
             "secretName": "demo-password"
           },
           "serviceProviderConfiguration": {
-            "connectionName": "keyvault",
+            "connectionName": "keyVault-1",
             "operationId": "getSecret",
             "serviceProviderId": "/serviceProviders/keyVault"
           }
@@ -52,7 +52,7 @@
         "runAfter": {
           "Get_Username_Secret": ["Succeeded"]
         },
-        "description": "Get password directly from Key Vault using Managed Identity"
+        "description": "Get password from Key Vault using Built-in Connector with Managed Identity"
       },
       "Call_Httpbin_Get": {
         "type": "Http",
@@ -61,7 +61,7 @@
           "uri": "https://httpbin.org/get",
           "queries": {
             "username": "@body('Get_Username_Secret')?['value']",
-            "message": "Hello from Logic App with Managed Identity and Key Vault Built-in Connector",
+            "message": "Hello from Logic App with Key Vault Built-in Connector and Managed Identity",
             "timestamp": "@utcNow()",
             "customParam": "@coalesce(triggerBody()?['customParam'], 'defaultValue')"
           },
@@ -108,7 +108,7 @@
           "statusCode": 200,
           "body": {
             "status": "success",
-            "message": "Workflow executed successfully using Key Vault Built-in Connector",
+            "message": "Workflow executed successfully using Key Vault Built-in Connector with Managed Identity",
             "data": {
               "httpbinResponse": "@body('Parse_Httpbin_Response')",
               "usernameUsed": "@body('Get_Username_Secret')?['value']",
