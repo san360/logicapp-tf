@@ -116,6 +116,12 @@ resource "azurerm_role_assignment" "deployer_storage_file" {
   principal_id         = data.azurerm_client_config.current.object_id
 }
 
+resource "azurerm_role_assignment" "deployer_storage_blob" {
+  scope                = azapi_resource.storage_account.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
 # -----------------------------------------------------------------------------
 # Key Vault
 # -----------------------------------------------------------------------------
@@ -282,43 +288,3 @@ resource "azurerm_role_assignment" "logic_app_kv_secrets" {
   principal_id         = jsondecode(azapi_resource.logic_app.output).identity.principalId
 }
 
-# -----------------------------------------------------------------------------
-# Archive Logic App Source Files for ZIP Deployment
-# -----------------------------------------------------------------------------
-data "archive_file" "logic_app_package" {
-  type        = "zip"
-  output_path = "${path.module}/logic-app-package.zip"
-  source_dir  = "${path.module}/logic-app-src"
-
-  excludes = [
-    "workflow-designtime",
-    "workflow-designtime/*",
-    "local.settings.json",
-    ".vscode",
-    ".vscode/*"
-  ]
-}
-
-# -----------------------------------------------------------------------------
-# Deploy Logic App using Azure CLI (ZIP Deploy)
-# -----------------------------------------------------------------------------
-resource "null_resource" "logic_app_deploy" {
-  triggers = {
-    package_md5 = data.archive_file.logic_app_package.output_md5
-  }
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      az logicapp deployment source config-zip \
-        --name ${local.logic_app_name} \
-        --resource-group ${azurerm_resource_group.main.name} \
-        --src ${data.archive_file.logic_app_package.output_path}
-    EOT
-  }
-
-  depends_on = [
-    azapi_resource.logic_app,
-    data.archive_file.logic_app_package,
-    azurerm_role_assignment.logic_app_kv_secrets
-  ]
-}
