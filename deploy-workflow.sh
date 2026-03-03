@@ -8,15 +8,6 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Convert path for Windows if running in WSL
-if grep -qEi "(microsoft|wsl)" /proc/version 2>/dev/null; then
-    # Running in WSL - convert to Windows path for Azure CLI
-    WIN_SCRIPT_DIR=$(wslpath -w "$SCRIPT_DIR")
-    ZIP_FILE_WIN="$WIN_SCRIPT_DIR\\logic-app-package.zip"
-else
-    ZIP_FILE_WIN="$SCRIPT_DIR/logic-app-package.zip"
-fi
-
 echo "======================================"
 echo "Logic App Workflow Deployment"
 echo "======================================"
@@ -127,7 +118,7 @@ deploy_workflow() {
     if az webapp deploy \
         --resource-group "$RESOURCE_GROUP" \
         --name "$LOGIC_APP_NAME" \
-        --src-path "$ZIP_FILE_WIN" \
+        --src-path "$ZIP_FILE" \
         --type zip \
         --timeout 120 2>&1; then
         echo -e "${GREEN}✓ Workflow deployed successfully via direct upload${NC}"
@@ -157,7 +148,7 @@ deploy_workflow() {
         --account-name "$STORAGE_ACCOUNT" \
         --container-name "$CONTAINER" \
         --name "$BLOB_NAME" \
-        --file "$ZIP_FILE_WIN" \
+        --file "$ZIP_FILE" \
         --auth-mode login \
         --overwrite
     

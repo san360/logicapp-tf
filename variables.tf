@@ -52,10 +52,28 @@ variable "logic_app_sku" {
   }
 }
 
-variable "use_asev3" {
-  description = "Whether to use App Service Environment v3. Required when Azure Policy disables storage account shared key access."
+variable "use_existing_ase" {
+  description = "Whether to use an existing App Service Environment v3. When true, ASE is not created by this module - it must exist beforehand."
   type        = bool
   default     = true
+}
+
+variable "existing_ase_id" {
+  description = "Full resource ID of the existing ASEv3. Required when use_existing_ase = true. Example: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Web/hostingEnvironments/{ase-name}"
+  type        = string
+  default     = ""
+}
+
+variable "existing_ase_resource_group" {
+  description = "Resource group name where the existing ASE is located. Required when use_existing_ase = true."
+  type        = string
+  default     = ""
+}
+
+variable "existing_ase_name" {
+  description = "Name of the existing ASEv3. Required when use_existing_ase = true."
+  type        = string
+  default     = ""
 }
 
 variable "tags" {
@@ -67,3 +85,66 @@ variable "tags" {
     ManagedBy   = "Terraform"
   }
 }
+
+# -----------------------------------------------------------------------------
+# Existing Network Configuration
+# This module requires existing VNet/subnet setup
+# -----------------------------------------------------------------------------
+
+variable "existing_vnet_resource_group_name" {
+  description = "Resource group name where the existing VNet is located."
+  type        = string
+}
+
+variable "existing_vnet_name" {
+  description = "Name of the existing VNet."
+  type        = string
+}
+
+variable "existing_subnet_name" {
+  description = "Name of the existing subnet for ASEv3. Must have delegation for Microsoft.Web/hostingEnvironments."
+  type        = string
+}
+
+variable "existing_subnet_id" {
+  description = "Full resource ID of the existing subnet for ASEv3. Example: /subscriptions/{sub}/resourceGroups/{rg}/providers/Microsoft.Network/virtualNetworks/{vnet}/subnets/{subnet}"
+  type        = string
+  default     = ""
+}
+
+variable "enable_private_endpoints" {
+  description = "Whether to create private endpoints for the storage account. Requires VNet integration."
+  type        = bool
+  default     = false
+}
+
+variable "private_endpoint_subnet_id" {
+  description = "Subnet ID for private endpoints (can be different from ASE subnet). Required when enable_private_endpoints = true."
+  type        = string
+  default     = ""
+}
+
+variable "existing_private_dns_zone_ids" {
+  description = "Map of existing Private DNS Zone IDs for storage services. Required when enable_private_endpoints = true and using existing DNS zones. Keys: blob, file, table, queue"
+  type = object({
+    blob  = optional(string, "")
+    file  = optional(string, "")
+    table = optional(string, "")
+    queue = optional(string, "")
+  })
+  default = {
+    blob  = ""
+    file  = ""
+    table = ""
+    queue = ""
+  }
+}
+
+variable "create_private_dns_zones" {
+  description = "Whether to create new Private DNS zones for storage private endpoints. Set to false if you want to use existing DNS zones."
+  type        = bool
+  default     = true
+}
+
+# Note: ASE internal mode is configured in the external ASE module/codebase
+# This module only deploys Logic Apps to an existing ASE

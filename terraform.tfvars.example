@@ -12,11 +12,50 @@ project_name        = "logicappdemo"
 secret_username = "demouser"
 secret_password = "DemoP@ssw0rd123!"
 
-# Logic App SKU (WS1, WS2, or WS3)
-# WS1: Small workloads
-# WS2: Medium workloads  
-# WS3: Large workloads
-logic_app_sku = "WS1"
+# Logic App SKU (I1v2, I2v2, I3v2 for ASEv3)
+logic_app_sku = "I1v2"
+
+# -----------------------------------------------------------------------------
+# EXISTING ASE CONFIGURATION
+# ASE is managed externally - this module only deploys Logic Apps to existing ASE
+# -----------------------------------------------------------------------------
+use_existing_ase            = true
+existing_ase_id             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-ase/providers/Microsoft.Web/hostingEnvironments/ase-name"
+existing_ase_resource_group = "rg-ase"
+existing_ase_name           = "ase-name"
+
+# -----------------------------------------------------------------------------
+# EXISTING NETWORK CONFIGURATION
+# This module requires existing VNet/subnet setup
+# -----------------------------------------------------------------------------
+existing_vnet_resource_group_name = "rg-network"
+existing_vnet_name                = "vnet-hub"
+existing_subnet_name              = "snet-ase"
+
+# Optional: Provide full subnet ID (overrides subnet name lookup)
+existing_subnet_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-network/providers/Microsoft.Network/virtualNetworks/vnet-hub/subnets/snet-ase"
+
+# -----------------------------------------------------------------------------
+# PRIVATE ENDPOINTS CONFIGURATION
+# Enable private endpoints for storage account when using private networking
+# -----------------------------------------------------------------------------
+
+# Enable private endpoints for storage account
+enable_private_endpoints = false
+
+# Subnet for private endpoints (can be different from ASE subnet)
+# private_endpoint_subnet_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-network/providers/Microsoft.Network/virtualNetworks/vnet-hub/subnets/snet-privatelink"
+
+# Create new Private DNS zones (set to false to use existing zones)
+create_private_dns_zones = true
+
+# Existing Private DNS Zone IDs (required when create_private_dns_zones = false)
+# existing_private_dns_zone_ids = {
+#   blob  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-dns/providers/Microsoft.Network/privateDnsZones/privatelink.blob.core.windows.net"
+#   file  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-dns/providers/Microsoft.Network/privateDnsZones/privatelink.file.core.windows.net"
+#   table = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-dns/providers/Microsoft.Network/privateDnsZones/privatelink.table.core.windows.net"
+#   queue = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-dns/providers/Microsoft.Network/privateDnsZones/privatelink.queue.core.windows.net"
+# }
 
 # Resource tags
 tags = {
